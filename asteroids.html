@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Asteroids Game by Ryan Gallop</title>
+        <style></style>
+    </head>
+    <body>
+        <canvas id="gameCanvas" width="700" height="500"></canvas>
+        <script>
+            /** @type {HTMLCanvasElement} */
+            
+            const FPS = 30;
+            const SHIP_HEIGHT = 30;  // ship height in pixels
+
+            var canv = document.getElementById("gameCanvas");
+            var context = canv.getContext("2d");
+
+            var ship = {
+                x: canv.width / 2,
+                y: canv.height / 2,
+                r: SHIP_HEIGHT / 2,
+                a: 90 / 180 * Math.PI  // convert to radians
+            }
+
+            // game loop
+            setInterval(update, 1000 / FPS);
+
+            function update() {
+                // handles changes to game state
+
+                // draw space
+                context.fillStyle = "black";
+                context.fillRect(0, 0, canv.width, canv.height);
+
+                // draw ship
+                context.strokeStyle = "white";
+                context.lineWidth = SHIP_HEIGHT / 20;
+                context.beginPath();
+                context.moveTo(  // nose of the ship
+                    ship.x + ship.r * Math.cos(ship.a),
+                    ship.y - ship.r * Math.sin(ship.a)
+                );
+                context.lineTo(  // rear left
+                    ship.x - ship.r * (Math.cos(ship.a) + Math.sin(ship.a)),
+                    ship.y + ship.r * (Math.sin(ship.a) - Math.cos(ship.a))
+                );
+                context.lineTo(  // rear left
+                    ship.x - ship.r * (Math.cos(ship.a) - Math.sin(ship.a)),
+                    ship.y + ship.r * (Math.sin(ship.a) + Math.cos(ship.a))
+                );
+                context.stroke();
+            }
+        </script>
+    </body>
+</html>
