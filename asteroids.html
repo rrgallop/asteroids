@@ -16,9 +16,10 @@
             const SHIP_HEIGHT = 30;  // ship height in pixels
             const TURN_SPEED = 360;  // turn speed (deg/sec)
             const ASTEROIDS_NUM = 5;  // average number of asteroids spawned
+            const ASTEROID_JAG = 0.5;  // controls jaggedness of asteroid
             const ASTEROID_SPEED = 50;  // max start speed of asteroid in pixels/sec
-            const ASTEROID_SIZE = 75;  // starting size of asteroid in pixels
-            const ASTEROIDS_VERTICES = 8;  // avg # of vertices on each asteroid
+            const ASTEROID_SIZE = 100;  // starting size of asteroid in pixels
+            const ASTEROIDS_VERTICES = 10;  // avg # of vertices on each asteroid
 
             var canv = document.getElementById("gameCanvas");
             var context = canv.getContext("2d");
@@ -49,16 +50,33 @@
                     yv: Math.random() * ASTEROID_SPEED / FPS * (Math.random() < .5 ? 1 : -1),
                     radius: ASTEROID_SIZE / 2,
                     angle: Math.random() * Math.PI * 2,  // convert to radians
-                    vertices: Math.floor(Math.random() * (ASTEROIDS_VERTICES + 1) + ASTEROIDS_VERTICES / 2)
+                    vertices: Math.floor(Math.random() * (ASTEROIDS_VERTICES + 1) + ASTEROIDS_VERTICES / 2),
+                    offsets: [],
                 };
+
+                // create vertex offsets array
+                for (var i = 0; i < asteroid.vertices; i++){
+                    asteroid.offsets.push(Math.random() * ASTEROID_JAG * 2 + 1 - ASTEROID_JAG);
+                }
                 return asteroid;
+            }
+
+            function distanceBetween(x1, y1, x2, y2){
+                return Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2))
             }
 
             function createAsteroids() {
                 var x,y;
-                for (var i = 0; i < ASTEROIDS_NUM; i++){
-                    x = Math.floor(Math.random() * canv.width);
-                    y = Math.floor(Math.random() * canv.height);
+                var asteroidVariance;
+                
+                for (var i = 0; i < ASTEROIDS_NUM+2; i++){
+                    do {
+                        x = Math.floor(Math.random() * canv.width);
+                        y = Math.floor(Math.random() * canv.height);
+                        
+                    }while(distanceBetween(ship.x,ship.y,x,y) < ASTEROID_SIZE + ship.radius);
+                    // x = Math.floor(Math.random() * canv.width);
+                    // y = Math.floor(Math.random() * canv.height);
                     asteroids.push(newAsteroid(x, y));
                 }
             }
@@ -125,7 +143,7 @@
                 context.stroke();
 
                 // draw asteroids
-                var x, y, radius, angle, vertices;
+                var x, y, radius, angle, vertices, offsets;
                 context.strokeStyle = "slategrey";
                 context.lineWidth = SHIP_HEIGHT / 5;
                 for (var i = 0; i < asteroids.length; i++){
@@ -135,22 +153,23 @@
                     radius = asteroids[i].radius;
                     angle = asteroids[i].angle;
                     vertices = asteroids[i].vertices;
+                    offsets = asteroids[i].offsets;
                     // draw path
                     context.beginPath();
                     context.moveTo(
-                        x + radius * Math.cos(angle),
-                        y + radius * Math.sin(angle)
+                        x + radius * offsets[0] * Math.cos(angle),
+                        y + radius * offsets[0] * Math.sin(angle)
                     );
 
                     // draw asteroid
-                    for (var j = 0; j < vertices+1; j++){
+                    for (var j = 1; j < vertices; j++){
                        context.lineTo(
-                            x + radius * Math.cos(angle + j * Math.PI * 2 / vertices),
-                            y + radius * Math.sin(angle + j * Math.PI * 2 / vertices)
-                       );
-                       context.closePath;
-                       context.stroke();
+                            x + radius * offsets[j] * Math.cos(angle + j * Math.PI * 2 / vertices),
+                            y + radius * offsets[j] * Math.sin(angle + j * Math.PI * 2 / vertices)
+                       );   
                     }
+                    context.closePath();
+                    context.stroke();
                 }
 
                 // rotate ship by modifying ship angle
