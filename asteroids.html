@@ -15,14 +15,19 @@
             const SHIP_THRUST = 5;  // acceleration pixels/sec^2
             const SHIP_HEIGHT = 30;  // ship height in pixels
             const TURN_SPEED = 360;  // turn speed (deg/sec)
-            
+            const ASTEROIDS_NUM = 5;  // average number of asteroids spawned
+            const ASTEROID_SPEED = 50;  // max start speed of asteroid in pixels/sec
+            const ASTEROID_SIZE = 75;  // starting size of asteroid in pixels
+            const ASTEROIDS_VERTICES = 8;  // avg # of vertices on each asteroid
 
             var canv = document.getElementById("gameCanvas");
             var context = canv.getContext("2d");
 
             var ship = {
+                // ship starting coordinates
                 x: canv.width / 2,
                 y: canv.height / 2,
+
                 radius: SHIP_HEIGHT / 2,
                 angle: 90 / 180 * Math.PI,  // convert to radians
                 rotation: 0,
@@ -30,6 +35,31 @@
                 thrust: {
                     x: 0,
                     y: 0
+                }
+            }
+
+            var asteroids = [];
+            createAsteroids();
+
+            function newAsteroid(x, y){
+                var asteroid = {
+                    x: x,
+                    y: y,
+                    xv: Math.random() * ASTEROID_SPEED / FPS * (Math.random() < .5 ? 1 : -1),
+                    yv: Math.random() * ASTEROID_SPEED / FPS * (Math.random() < .5 ? 1 : -1),
+                    radius: ASTEROID_SIZE / 2,
+                    angle: Math.random() * Math.PI * 2,  // convert to radians
+                    vertices: Math.floor(Math.random() * (ASTEROIDS_VERTICES + 1) + ASTEROIDS_VERTICES / 2)
+                };
+                return asteroid;
+            }
+
+            function createAsteroids() {
+                var x,y;
+                for (var i = 0; i < ASTEROIDS_NUM; i++){
+                    x = Math.floor(Math.random() * canv.width);
+                    y = Math.floor(Math.random() * canv.height);
+                    asteroids.push(newAsteroid(x, y));
                 }
             }
 
@@ -59,7 +89,7 @@
                     case 37:  // left arrow stop rotating left
                         ship.rotation = 0;
                         break;
-                    case 39:  // right arrow start rotating right
+                    case 39:  // right arrow stop rotating right
                         ship.rotation = 0;
                         break;
                     case 38:  // up arrow cease thrust
@@ -94,6 +124,35 @@
                 context.closePath();
                 context.stroke();
 
+                // draw asteroids
+                var x, y, radius, angle, vertices;
+                context.strokeStyle = "slategrey";
+                context.lineWidth = SHIP_HEIGHT / 5;
+                for (var i = 0; i < asteroids.length; i++){
+                    // get asteroid properties
+                    x = asteroids[i].x;
+                    y = asteroids[i].y;
+                    radius = asteroids[i].radius;
+                    angle = asteroids[i].angle;
+                    vertices = asteroids[i].vertices;
+                    // draw path
+                    context.beginPath();
+                    context.moveTo(
+                        x + radius * Math.cos(angle),
+                        y + radius * Math.sin(angle)
+                    );
+
+                    // draw asteroid
+                    for (var j = 0; j < vertices+1; j++){
+                       context.lineTo(
+                            x + radius * Math.cos(angle + j * Math.PI * 2 / vertices),
+                            y + radius * Math.sin(angle + j * Math.PI * 2 / vertices)
+                       );
+                       context.closePath;
+                       context.stroke();
+                    }
+                }
+
                 // rotate ship by modifying ship angle
                 ship.angle += ship.rotation;
 
@@ -101,6 +160,8 @@
                 if (ship.thrusting) {
                     ship.thrust.x += SHIP_THRUST * Math.cos(ship.angle) / FPS;
                     ship.thrust.y -= SHIP_THRUST * Math.sin(ship.angle) / FPS;
+
+                    // draw flame when thrusting! \m/
                     context.strokeStyle = "yellow";
                     context.fillStyle = "red";
                     context.lineWidth = SHIP_HEIGHT / 10;
