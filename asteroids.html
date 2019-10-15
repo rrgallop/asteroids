@@ -21,6 +21,8 @@
             const ASTEROID_SIZE = 100;  // starting size of asteroid in pixels
             const ASTEROIDS_VERTICES = 10;  // avg # of vertices on each asteroid
 
+            const SHOW_COLLISION = true;  // show or hide collision geometry
+
             var canv = document.getElementById("gameCanvas");
             var context = canv.getContext("2d");
 
@@ -142,11 +144,19 @@
                 context.closePath();
                 context.stroke();
 
+                if (SHOW_COLLISION){
+                    context.strokeStyle = "lime";
+                    context.beginPath();
+                    context.arc(ship.x, ship.y, ship.radius, 0, Math.PI * 2, false);
+                    context.stroke();
+                }
+
                 // draw asteroids
                 var x, y, radius, angle, vertices, offsets;
-                context.strokeStyle = "slategrey";
+                
                 context.lineWidth = SHIP_HEIGHT / 5;
                 for (var i = 0; i < asteroids.length; i++){
+                    context.strokeStyle = "slategrey";
                     // get asteroid properties
                     x = asteroids[i].x;
                     y = asteroids[i].y;
@@ -170,6 +180,13 @@
                     }
                     context.closePath();
                     context.stroke();
+
+                    if (SHOW_COLLISION){
+                        context.strokeStyle = "red";
+                        context.beginPath();
+                        context.arc(x, y, radius, 0, Math.PI * 2, false);
+                        context.stroke();
+                    }
 
                     // move asteroid
                     asteroids[i].x += asteroids[i].xv;
